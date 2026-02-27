@@ -56,6 +56,9 @@ Configure these in Netlify Site Settings → Environment variables:
 9. Optional dedicated integration checks:
    - `STAGING_URL=... STRIPE_WEBHOOK_SECRET=... npm run verify:stripe:webhook`
    - `STAGING_URL=... CRON_SECRET=... npm run verify:renewal:cron`
+10. Optional consolidated verification runner:
+   - `STAGING_URL=... npm run verify:staging:suite`
+   - suite auto-runs smoke checks and conditionally runs Stripe/cron checks when required secrets are present.
 
 ## GitHub Actions deployment path
 Use the manual workflow `.github/workflows/netlify-staging.yml` to run staging deployment and verification in CI.

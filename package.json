@@ -12,6 +12,7 @@
     "predeploy:netlify:staging": "node scripts/predeploy-netlify.mjs",
     "deploy:netlify:staging": "netlify deploy --build --context=deploy-preview",
     "verify:staging": "node scripts/verify-staging.mjs",
+    "verify:staging:suite": "node scripts/verify-staging-suite.mjs",
     "verify:stripe:webhook": "node scripts/verify-stripe-webhook.mjs",
     "verify:renewal:cron": "node scripts/verify-renewal-cron.mjs"
   },
