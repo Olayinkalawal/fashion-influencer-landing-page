@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth/session";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ReferralsSummary } from "@/components/admin/referrals-summary";
+import { KpiOverview } from "@/components/admin/kpi-overview";
 
 export default async function AdminHomePage() {
   const session = await requireRole("admin");
@@ -67,8 +68,8 @@ export default async function AdminHomePage() {
           <CardHeader>
             <CardTitle>Analytics</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            KPI and conversion tracking baseline.
+          <CardContent>
+            <KpiOverview />
           </CardContent>
         </Card>
       </div>
