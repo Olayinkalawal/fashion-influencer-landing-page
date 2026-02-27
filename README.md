@@ -73,6 +73,8 @@ Phase 3/4 baseline now includes:
 - Stripe payment endpoints:
   - `POST /api/stripe/checkout`
   - `POST /api/stripe/webhook`
+- Renewal reminder job endpoint:
+  - `POST /api/cron/renewal-reminders` (optional `x-cron-secret` header)
 - Deterministic pricing engine with extension and referral rules
 - Multi-step quote routes:
   - `/quote`
@@ -92,6 +94,10 @@ Portal surface now includes:
 - `/portal/renewal`
 - `/portal/claims`
 - `/portal/profile`
+- Renewal reminder scaffolding:
+  - `lib/services/renewal-reminders.ts`
+  - `lib/emails/renewal-reminder.ts`
+  - `supabase/functions/renewal-reminders/index.ts`
 
 Learning surface includes:
 
