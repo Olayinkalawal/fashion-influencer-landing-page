@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
 import { getLearningMemberKey } from "@/lib/learning/member-key";
 import { listInMemoryCpdRecords } from "@/lib/learning/cpd-records-store";
+import { resolveLearningMemberRecord } from "@/lib/learning/member-record";
 
 export async function GET() {
   const memberKey = await getLearningMemberKey();
@@ -14,15 +15,8 @@ export async function GET() {
     });
   }
 
-  const { data: member } = await supabase
-    .from("members")
-    .select("id")
-    .eq("email", memberKey)
-    .single();
-
-  if (!member) {
-    return NextResponse.json({ source: "supabase", records: [] });
-  }
+  const member = await resolveLearningMemberRecord(memberKey);
+  if (!member) return NextResponse.json({ source: "supabase", records: [] });
 
   const { data, error } = await supabase
     .from("cpd_records")

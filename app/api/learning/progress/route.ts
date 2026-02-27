@@ -4,6 +4,7 @@ import { getLearningMemberKey } from "@/lib/learning/member-key";
 import { mockCourses } from "@/lib/learning/mock-data";
 import { updateInMemoryLessonProgress, ensureInMemoryEnrolment } from "@/lib/learning/progress-store";
 import { upsertInMemoryCourseCpdRecord } from "@/lib/learning/cpd-records-store";
+import { resolveLearningMemberRecord } from "@/lib/learning/member-record";
 
 interface ProgressRequestBody {
   courseId: string;
@@ -52,17 +53,9 @@ export async function POST(request: Request) {
     });
   }
 
-  const { data: member } = await supabase
-    .from("members")
-    .select("id")
-    .eq("email", memberKey)
-    .single();
-
+  const member = await resolveLearningMemberRecord(memberKey);
   if (!member) {
-    return NextResponse.json(
-      { message: "Member record not found for current account" },
-      { status: 404 },
-    );
+    return NextResponse.json({ message: "Unable to resolve member record" }, { status: 500 });
   }
 
   await supabase.from("enrolments").upsert(
