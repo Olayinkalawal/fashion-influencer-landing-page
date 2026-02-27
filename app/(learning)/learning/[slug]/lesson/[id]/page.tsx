@@ -4,6 +4,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCourseBySlug, getLesson, mockCourses } from "@/lib/learning/mock-data";
+import { LessonProgressAction } from "@/components/learning/lesson-progress-action";
 
 export function generateStaticParams() {
   return mockCourses.flatMap((course) =>
@@ -42,6 +43,7 @@ export default function LessonPage({ params }: { params: { slug: string; id: str
               <Link href="/learning/my-courses">Mark progress in my courses</Link>
             </Button>
           </div>
+          <LessonProgressAction courseId={course.id} lessonId={lesson.id} />
         </CardContent>
       </Card>
     </PageShell>
