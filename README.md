@@ -37,6 +37,12 @@ Create a `.env.local` file from `.env.example` before testing authentication and
 - GitHub Actions workflow at `.github/workflows/ci.yml`
 - Runs: lint, test, typecheck, and build on push/PR
 
+## Runbooks
+
+- `docs/runbooks/netlify-staging.md`
+- `docs/runbooks/stripe-webhooks.md`
+- `docs/runbooks/renewal-reminders.md`
+
 ### Quality commands
 
 ```bash
