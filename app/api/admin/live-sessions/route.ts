@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireAdminApiAccess } from "@/lib/admin/auth";
+import { getAdminApiSession, requireAdminApiAccess } from "@/lib/admin/auth";
 import { createAdminLiveSession, listAdminLiveSessions } from "@/lib/admin/store";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
+import { recordAdminAuditEvent } from "@/lib/admin/audit";
 
 interface CreateLiveSessionBody {
   title: string;
@@ -34,7 +35,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await requireAdminApiAccess())) {
+  const session = await getAdminApiSession();
+  if (!session) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -55,6 +57,11 @@ export async function POST(request: Request) {
       duration_minutes: Number(body.duration_minutes ?? 60),
       host: body.host ?? "EYA Team",
     });
+    await recordAdminAuditEvent({
+      actorId: session.user.email ?? null,
+      action: "admin_live_session_created",
+      payload: { live_session_id: created.id, source: "mock" },
+    });
     return NextResponse.json({ source: "mock", live_session: created }, { status: 201 });
   }
 
@@ -74,6 +81,12 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
+
+  await recordAdminAuditEvent({
+    actorId: session.user.email ?? null,
+    action: "admin_live_session_created",
+    payload: { live_session_id: data.id, source: "supabase" },
+  });
 
   return NextResponse.json({ source: "supabase", live_session: data }, { status: 201 });
 }

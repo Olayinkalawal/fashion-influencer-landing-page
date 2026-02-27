@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireAdminApiAccess } from "@/lib/admin/auth";
+import { getAdminApiSession, requireAdminApiAccess } from "@/lib/admin/auth";
 import {
   createAdminContactMessage,
   listAdminContactMessages,
 } from "@/lib/admin/store";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
+import { recordAdminAuditEvent } from "@/lib/admin/audit";
 
 interface CreateContactBody {
   member_email: string;
@@ -36,7 +37,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await requireAdminApiAccess())) {
+  const session = await getAdminApiSession();
+  if (!session) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -57,6 +59,11 @@ export async function POST(request: Request) {
       priority: body.priority ?? "Normal",
       status: "Open",
     });
+    await recordAdminAuditEvent({
+      actorId: session.user.email ?? null,
+      action: "admin_contact_message_created",
+      payload: { message_id: created.id, source: "mock", priority: created.priority },
+    });
     return NextResponse.json({ source: "mock", message: created }, { status: 201 });
   }
 
@@ -75,6 +82,12 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
+
+  await recordAdminAuditEvent({
+    actorId: session.user.email ?? null,
+    action: "admin_contact_message_created",
+    payload: { message_id: data.id, source: "supabase", priority: data.priority },
+  });
 
   return NextResponse.json({ source: "supabase", message: data }, { status: 201 });
 }

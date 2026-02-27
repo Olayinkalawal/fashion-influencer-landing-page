@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireAdminApiAccess } from "@/lib/admin/auth";
+import { getAdminApiSession, requireAdminApiAccess } from "@/lib/admin/auth";
 import {
   createAdminCourse,
   listAdminCourses,
 } from "@/lib/admin/store";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
+import { recordAdminAuditEvent } from "@/lib/admin/audit";
 
 interface CreateCourseBody {
   slug: string;
@@ -38,7 +39,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await requireAdminApiAccess())) {
+  const session = await getAdminApiSession();
+  if (!session) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -56,6 +58,11 @@ export async function POST(request: Request) {
       category: body.category ?? "General",
       cpd_hours: Number(body.cpd_hours ?? 0),
       is_member_only: body.is_member_only ?? true,
+    });
+    await recordAdminAuditEvent({
+      actorId: session.user.email ?? null,
+      action: "admin_course_created",
+      payload: { course_id: created.id, source: "mock" },
     });
     return NextResponse.json({ source: "mock", course: created }, { status: 201 });
   }
@@ -77,6 +84,12 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
+
+  await recordAdminAuditEvent({
+    actorId: session.user.email ?? null,
+    action: "admin_course_created",
+    payload: { course_id: data.id, source: "supabase" },
+  });
 
   return NextResponse.json({ source: "supabase", course: data }, { status: 201 });
 }

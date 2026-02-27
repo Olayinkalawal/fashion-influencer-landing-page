@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { requireAdminApiAccess } from "@/lib/admin/auth";
+import { getAdminApiSession } from "@/lib/admin/auth";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
 import { updateAdminReferral } from "@/lib/admin/store";
+import { recordAdminAuditEvent } from "@/lib/admin/audit";
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  if (!(await requireAdminApiAccess())) {
+  const session = await getAdminApiSession();
+  if (!session) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -19,6 +21,16 @@ export async function PATCH(
     if (!updated) {
       return NextResponse.json({ message: "Referral not found" }, { status: 404 });
     }
+    await recordAdminAuditEvent({
+      actorId: session.user.email ?? null,
+      action: "admin_referral_updated",
+      payload: {
+        referral_id: updated.id,
+        source: "mock",
+        status: updated.status,
+      },
+      caseRef: updated.case_ref,
+    });
     return NextResponse.json({ source: "mock", referral: updated });
   }
 
@@ -36,6 +48,16 @@ export async function PATCH(
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
+
+  await recordAdminAuditEvent({
+    actorId: session.user.email ?? null,
+    action: "admin_referral_updated",
+    payload: {
+      referral_id: data.id,
+      source: "supabase",
+      status: data.status,
+    },
+  });
 
   return NextResponse.json({ source: "supabase", referral: data });
 }
