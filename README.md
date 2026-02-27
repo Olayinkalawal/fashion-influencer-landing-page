@@ -117,3 +117,4 @@ Admin surface includes:
 - `/admin/courses`
 - `/admin/live-sessions`
 - `/admin/contact-queue`
+- `/api/admin/members` (admin-protected member listing API)
