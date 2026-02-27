@@ -2,8 +2,10 @@ import { randomUUID } from "crypto";
 import type { QuoteApplicationPayload } from "@/lib/domain/quote";
 import type {
   BindResponse,
+  EndorseResponse,
   PolicyDocument,
   QuoteResponse,
+  RenewResponse,
   QuoteStatusResponse,
 } from "@/lib/domain/nexus";
 import { calculatePremium, evaluateReferralReasons } from "@/lib/nexus/rating";
@@ -126,4 +128,72 @@ export function getDocuments(reference: string) {
     return null;
   }
   return existing.documents ?? [];
+}
+
+export function renewQuote(reference: string, payload: QuoteApplicationPayload): RenewResponse {
+  const existing = getQuoteByRef(reference);
+
+  if (!existing) {
+    throw new Error("Quote not found");
+  }
+
+  const quote = createQuote(payload);
+  const renewalRef = normalizeRef(`R${Date.now()}${Math.floor(Math.random() * 900 + 100)}`);
+
+  updateStoredQuote(reference, (stored) => ({
+    ...stored,
+    renewals: [
+      ...(stored.renewals ?? []),
+      {
+        renewal_ref: renewalRef,
+        created_at: new Date().toISOString(),
+        payload,
+      },
+    ],
+  }));
+
+  return {
+    case_ref: existing.response.case_ref,
+    previous_quote_ref: existing.response.quote_ref,
+    renewal_ref: renewalRef,
+    status: quote.status === "Pending Referral" ? "Pending Referral" : "Quotation",
+    premium: quote.premium,
+  };
+}
+
+export function endorseQuote(
+  reference: string,
+  payload: Record<string, unknown>,
+): EndorseResponse {
+  const existing = getQuoteByRef(reference);
+
+  if (!existing) {
+    throw new Error("Quote not found");
+  }
+
+  if (existing.response.status !== "On Cover") {
+    throw new Error("Only On Cover policies can be endorsed");
+  }
+
+  const endorsementRef = normalizeRef(`MTA${Date.now()}${Math.floor(Math.random() * 90 + 10)}`);
+
+  updateStoredQuote(reference, (stored) => ({
+    ...stored,
+    endorsements: [
+      ...(stored.endorsements ?? []),
+      {
+        endorsement_ref: endorsementRef,
+        created_at: new Date().toISOString(),
+        payload,
+      },
+    ],
+  }));
+
+  return {
+    case_ref: existing.response.case_ref,
+    quote_ref: existing.response.quote_ref,
+    endorsement_ref: endorsementRef,
+    status: "On Cover",
+    message: "Endorsement recorded",
+  };
 }

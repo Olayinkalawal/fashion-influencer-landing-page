@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { bindQuote, createQuote, getDocuments, getQuoteStatus } from "@/lib/nexus/service";
+import {
+  bindQuote,
+  createQuote,
+  endorseQuote,
+  getDocuments,
+  getQuoteStatus,
+  renewQuote,
+} from "@/lib/nexus/service";
 import { buildQuotePayload } from "@/lib/testing/fixtures";
 
 describe("nexus quote service", () => {
@@ -44,5 +51,26 @@ describe("nexus quote service", () => {
     expect(() => bindQuote(created.quote_ref)).toThrow(
       "Quote is pending referral and cannot be bound automatically",
     );
+  });
+
+  it("creates a renewal response from a valid payload", () => {
+    const payload = buildQuotePayload();
+    const created = createQuote(payload);
+    const renewed = renewQuote(created.quote_ref, payload);
+
+    expect(renewed.case_ref).toBe(created.case_ref);
+    expect(renewed.previous_quote_ref).toBe(created.quote_ref);
+    expect(renewed.renewal_ref).toMatch(/^R\d+/);
+    expect(renewed.premium.total_gbp).toBeGreaterThan(0);
+  });
+
+  it("records endorsement for on-cover policies only", () => {
+    const payload = buildQuotePayload();
+    const created = createQuote(payload);
+    bindQuote(created.quote_ref);
+
+    const endorsed = endorseQuote(created.quote_ref, { note: "Change of address" });
+    expect(endorsed.status).toBe("On Cover");
+    expect(endorsed.endorsement_ref).toMatch(/^MTA\d+/);
   });
 });

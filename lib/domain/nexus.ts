@@ -45,3 +45,19 @@ export interface BindResponse {
   status: "On Cover";
   documents: PolicyDocument[];
 }
+
+export interface RenewResponse {
+  case_ref: string;
+  previous_quote_ref: string;
+  renewal_ref: string;
+  status: "Quotation" | "Pending Referral";
+  premium: PremiumBreakdown;
+}
+
+export interface EndorseResponse {
+  case_ref: string;
+  quote_ref: string;
+  endorsement_ref: string;
+  status: "On Cover";
+  message: string;
+}

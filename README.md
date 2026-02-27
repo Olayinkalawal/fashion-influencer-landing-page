@@ -56,6 +56,10 @@ Phase 3/4 baseline now includes:
 - Internal Nexus-style quote endpoints:
   - `POST /api/nexus/quote`
   - `GET /api/nexus/quote/:ref`
+  - `POST /api/nexus/bind/:ref`
+  - `GET /api/nexus/documents/:ref`
+  - `POST /api/nexus/renew/:ref`
+  - `POST /api/nexus/endorse/:ref`
 - Deterministic pricing engine with extension and referral rules
 - Multi-step quote routes:
   - `/quote`
@@ -67,3 +71,11 @@ Phase 3/4 baseline now includes:
   - `/quote/payment`
   - `/quote/success`
 - Draft persistence via browser localStorage
+
+Portal surface now includes:
+
+- `/portal/policy`
+- `/portal/documents`
+- `/portal/renewal`
+- `/portal/claims`
+- `/portal/profile`

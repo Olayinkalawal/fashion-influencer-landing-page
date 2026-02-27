@@ -6,6 +6,16 @@ export interface StoredQuote {
   response: QuoteStatusResponse;
   policy_number?: string;
   documents?: PolicyDocument[];
+  endorsements?: Array<{
+    endorsement_ref: string;
+    created_at: string;
+    payload: Record<string, unknown>;
+  }>;
+  renewals?: Array<{
+    renewal_ref: string;
+    created_at: string;
+    payload: QuoteApplicationPayload;
+  }>;
 }
 
 const quoteByRef = new Map<string, StoredQuote>();
