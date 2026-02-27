@@ -5,6 +5,7 @@ Deploy the EYA platform to Netlify staging with all required environment configu
 
 ## Prerequisites
 - Netlify site connected to the repository branch.
+- Netlify CLI available (`npm run deploy:netlify:staging`).
 - Build settings:
   - Build command: `npm run build`
   - Publish directory: managed by Next.js runtime plugin
@@ -31,13 +32,18 @@ Configure these in Netlify Site Settings → Environment variables:
 
 ## Deployment checklist
 1. Push branch updates.
-2. Confirm Netlify build succeeds.
-3. Verify key routes:
+2. Set CLI environment variables for authenticated deploys:
+   - `NETLIFY_AUTH_TOKEN`
+   - `NETLIFY_SITE_ID`
+3. Run:
+   - `npm run deploy:netlify:staging`
+4. Confirm Netlify build succeeds.
+5. Verify key routes:
    - `/quote`, `/quote/review`, `/quote/payment`
    - `/portal`, `/portal/documents`, `/portal/renewal`
    - `/learning`, `/learning/my-courses`, `/learning/certificates`
    - `/admin`, `/admin/members`, `/admin/courses`
-4. Verify API health:
+6. Verify API health:
    - `POST /api/nexus/quote`
    - `GET /api/nexus/quote/:ref`
    - `POST /api/stripe/checkout`

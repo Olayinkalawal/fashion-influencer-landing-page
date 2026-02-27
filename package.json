@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint app components lib types auth.ts middleware.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:netlify:staging": "netlify deploy --build --context=deploy-preview"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -35,6 +36,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@netlify/plugin-nextjs": "^5.15.0",
+    "netlify-cli": "^23.11.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
