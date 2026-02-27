@@ -14,6 +14,31 @@ interface PersistQuoteInput {
   response: QuoteStatusResponse;
 }
 
+async function persistAuditEvent(input: {
+  caseId: string;
+  action: string;
+  payload: Record<string, unknown>;
+  actorRole?: string;
+}) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return;
+
+  const { error } = await supabase.from("audit_events").insert({
+    case_id: input.caseId,
+    actor_role: input.actorRole ?? "system",
+    action: input.action,
+    payload: input.payload,
+  });
+
+  if (error) {
+    log("warn", "Unable to persist audit event", {
+      action: input.action,
+      caseId: input.caseId,
+      error: error.message,
+    });
+  }
+}
+
 async function upsertMemberFromPayload(payload: QuoteApplicationPayload) {
   const supabase = getSupabaseAdminClient() as any;
   if (!supabase) return null;
@@ -168,6 +193,16 @@ export async function persistQuoteCreated({ payload, response }: PersistQuoteInp
       log("warn", "Unable to persist referrals", { error: referralError.message });
     }
   }
+
+  await persistAuditEvent({
+    caseId,
+    action: "quote_created",
+    payload: {
+      quote_ref: response.quote_ref,
+      status: response.status,
+      referral_required: response.referral_required,
+    },
+  });
 }
 
 export async function persistQuoteBound(
@@ -235,6 +270,16 @@ export async function persistQuoteBound(
   if (docsError) {
     log("warn", "Unable to persist policy documents", { error: docsError.message });
   }
+
+  await persistAuditEvent({
+    caseId,
+    action: "policy_bound",
+    payload: {
+      quote_ref: bindResponse.quote_ref,
+      policy_number: bindResponse.policy_number,
+      document_count: bindResponse.documents.length,
+    },
+  });
 }
 
 export async function persistRenewal(reference: string, payload: QuoteApplicationPayload, renewal: RenewResponse) {
@@ -264,9 +309,8 @@ export async function persistRenewal(reference: string, payload: QuoteApplicatio
     payload,
   });
 
-  await supabase.from("audit_events").insert({
-    case_id: (caseRow as any).id,
-    actor_role: "system",
+  await persistAuditEvent({
+    caseId: (caseRow as any).id,
     action: "renewal_submitted",
     payload: {
       reference,
@@ -302,9 +346,8 @@ export async function persistEndorsement(reference: string, endorsement: Endorse
     effective_at: new Date().toISOString(),
   });
 
-  await supabase.from("audit_events").insert({
-    case_id: (caseRow as any).id,
-    actor_role: "system",
+  await persistAuditEvent({
+    caseId: (caseRow as any).id,
     action: "endorsement_recorded",
     payload: {
       reference,
@@ -552,6 +595,17 @@ export async function persistCheckoutSessionCreated(input: {
     },
     { onConflict: "provider_ref" },
   );
+
+  await persistAuditEvent({
+    caseId: quoteRow.case_id as string,
+    action: "payment_checkout_started",
+    payload: {
+      quote_ref: input.quoteRef,
+      session_id: input.sessionId,
+      amount_gbp: input.amountGbp,
+      method: input.paymentMethod,
+    },
+  });
 }
 
 export async function persistPaymentCompletion(input: {
@@ -604,4 +658,14 @@ export async function persistPaymentCompletion(input: {
       provider_ref: null,
     });
   }
+
+  await persistAuditEvent({
+    caseId: quoteRow.case_id as string,
+    action: "payment_completed",
+    payload: {
+      quote_ref: input.quoteRef,
+      event_id: input.eventId,
+      amount_gbp: quoteRow.total_premium_gbp,
+    },
+  });
 }
