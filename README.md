@@ -25,6 +25,8 @@ npm install
 npm run dev
 ```
 
+Create a `.env.local` file from `.env.example` before testing authentication and integrations.
+
 ### Quality commands
 
 ```bash
@@ -40,3 +42,10 @@ Phase 1 establishes project foundation:
 - Route groups for marketing, quote, portal, learning, and admin areas
 - Shared layout and UI primitives
 - Environment configuration/validation scaffolding
+
+Phase 2 baseline scaffolding now includes:
+
+- NextAuth credentials-based sign in page (`/auth/signin`)
+- Route middleware protection for `/portal/*` and `/admin/*`
+- Supabase client/server helpers
+- Initial SQL migration for members, Nexus Core entities, and CPD tables
