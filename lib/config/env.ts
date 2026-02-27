@@ -13,6 +13,7 @@ const envSchema = z.object({
   BROKER_PASSWORD: z.string().min(8).optional(),
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  STRIPE_CURRENCY: z.string().default("gbp"),
 });
 
 const parsedEnv = envSchema.safeParse({
@@ -28,6 +29,7 @@ const parsedEnv = envSchema.safeParse({
   BROKER_PASSWORD: process.env.BROKER_PASSWORD,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  STRIPE_CURRENCY: process.env.STRIPE_CURRENCY,
 });
 
 if (!parsedEnv.success) {

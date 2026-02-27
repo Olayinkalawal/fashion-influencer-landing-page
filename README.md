@@ -60,6 +60,9 @@ Phase 3/4 baseline now includes:
   - `GET /api/nexus/documents/:ref`
   - `POST /api/nexus/renew/:ref`
   - `POST /api/nexus/endorse/:ref`
+- Stripe payment endpoints:
+  - `POST /api/stripe/checkout`
+  - `POST /api/stripe/webhook`
 - Deterministic pricing engine with extension and referral rules
 - Multi-step quote routes:
   - `/quote`

@@ -6,7 +6,7 @@ export default function QuotePaymentPage() {
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">Quote payment</h1>
       <p className="mt-2 text-muted-foreground">
-        Payment hand-off stage (Stripe integration follows in next phase).
+        Payment hand-off with Stripe checkout route and webhook confirmation pipeline.
       </p>
       <PaymentStep />
     </PageShell>
