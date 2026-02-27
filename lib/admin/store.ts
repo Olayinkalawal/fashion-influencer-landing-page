@@ -19,6 +19,25 @@ interface AdminLiveSessionRecord {
   host: string;
 }
 
+interface AdminReferralRecord {
+  id: string;
+  case_ref: string;
+  referral_type: string;
+  status: string;
+  notes: string;
+  created_at: string;
+}
+
+interface AdminContactMessageRecord {
+  id: string;
+  member_email: string;
+  subject: string;
+  message: string;
+  priority: "Low" | "Normal" | "High";
+  status: "Open" | "In Progress" | "Resolved";
+  created_at: string;
+}
+
 const courseStore = new Map<string, AdminCourseRecord>(
   mockCourses.map((course) => [
     course.id,
@@ -47,6 +66,47 @@ const liveSessionStore = new Map<string, AdminLiveSessionRecord>(
     },
   ]),
 );
+
+const referralStore = new Map<string, AdminReferralRecord>([
+  [
+    "ref-1",
+    {
+      id: "ref-1",
+      case_ref: "C20260001",
+      referral_type: "Underwriting",
+      status: "Pending",
+      notes: "Abuse cover requested",
+      created_at: new Date().toISOString(),
+    },
+  ],
+]);
+
+const contactQueueStore = new Map<string, AdminContactMessageRecord>([
+  [
+    "msg-1",
+    {
+      id: "msg-1",
+      member_email: "member1@example.com",
+      subject: "Document not available",
+      message: "Unable to access policy schedule from portal.",
+      priority: "High",
+      status: "Open",
+      created_at: new Date().toISOString(),
+    },
+  ],
+  [
+    "msg-2",
+    {
+      id: "msg-2",
+      member_email: "member2@example.com",
+      subject: "Renewal date confirmation",
+      message: "Please confirm renewal opening date window.",
+      priority: "Normal",
+      status: "In Progress",
+      created_at: new Date().toISOString(),
+    },
+  ],
+]);
 
 export function listAdminCourses() {
   return Array.from(courseStore.values());
@@ -95,4 +155,51 @@ export function updateAdminLiveSession(
 
 export function deleteAdminLiveSession(id: string) {
   return liveSessionStore.delete(id);
+}
+
+export function listAdminReferrals() {
+  return Array.from(referralStore.values());
+}
+
+export function updateAdminReferral(
+  id: string,
+  updates: Partial<Omit<AdminReferralRecord, "id" | "case_ref" | "referral_type">>,
+) {
+  const existing = referralStore.get(id);
+  if (!existing) return null;
+  const updated = { ...existing, ...updates, id: existing.id };
+  referralStore.set(id, updated);
+  return updated;
+}
+
+export function listAdminContactMessages() {
+  return Array.from(contactQueueStore.values());
+}
+
+export function createAdminContactMessage(
+  message: Omit<AdminContactMessageRecord, "id" | "created_at">,
+) {
+  const id = `msg-${Date.now()}`;
+  const created: AdminContactMessageRecord = {
+    id,
+    ...message,
+    created_at: new Date().toISOString(),
+  };
+  contactQueueStore.set(id, created);
+  return created;
+}
+
+export function updateAdminContactMessage(
+  id: string,
+  updates: Partial<Omit<AdminContactMessageRecord, "id" | "created_at">>,
+) {
+  const existing = contactQueueStore.get(id);
+  if (!existing) return null;
+  const updated = { ...existing, ...updates, id: existing.id };
+  contactQueueStore.set(id, updated);
+  return updated;
+}
+
+export function deleteAdminContactMessage(id: string) {
+  return contactQueueStore.delete(id);
 }

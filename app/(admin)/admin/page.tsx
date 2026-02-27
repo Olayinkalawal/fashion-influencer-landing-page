@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth/session";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ReferralsSummary } from "@/components/admin/referrals-summary";
 
 export default async function AdminHomePage() {
   const session = await requireRole("admin");
@@ -27,26 +28,46 @@ export default async function AdminHomePage() {
           <Link href="/admin/live-sessions">Live sessions</Link>
         </Button>
         <Button asChild variant="outline" size="sm">
+          <Link href="/admin/referrals">Referrals</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
           <Link href="/admin/contact-queue">Contact queue</Link>
         </Button>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          "Members",
-          "Cases & referrals",
-          "Courses",
-          "Analytics",
-        ].map((title) => (
-          <Card key={title}>
-            <CardHeader>
-              <CardTitle>{title}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Configuration and management workspace coming in subsequent phases.
-            </CardContent>
-          </Card>
-        ))}
+        <Card>
+          <CardHeader>
+            <CardTitle>Members</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Member account management and case linking.
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Cases & referrals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReferralsSummary />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Courses</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Publish CPD content and manage curriculum.
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            KPI and conversion tracking baseline.
+          </CardContent>
+        </Card>
       </div>
     </PageShell>
   );

@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  createAdminContactMessage,
   createAdminCourse,
   createAdminLiveSession,
+  deleteAdminContactMessage,
   deleteAdminCourse,
   deleteAdminLiveSession,
+  listAdminContactMessages,
   listAdminCourses,
   listAdminLiveSessions,
+  listAdminReferrals,
+  updateAdminReferral,
 } from "@/lib/admin/store";
 
 describe("admin in-memory store", () => {
@@ -32,5 +37,24 @@ describe("admin in-memory store", () => {
     });
     expect(listAdminLiveSessions().some((session) => session.id === created.id)).toBe(true);
     expect(deleteAdminLiveSession(created.id)).toBe(true);
+  });
+
+  it("updates referral status", () => {
+    const first = listAdminReferrals()[0];
+    const updated = updateAdminReferral(first.id, { status: "Resolved" });
+    expect(updated?.status).toBe("Resolved");
+  });
+
+  it("creates and deletes contact queue messages", () => {
+    const created = createAdminContactMessage({
+      member_email: "member3@example.com",
+      subject: "Support needed",
+      message: "Help with portal login",
+      priority: "Normal",
+      status: "Open",
+    });
+
+    expect(listAdminContactMessages().some((msg) => msg.id === created.id)).toBe(true);
+    expect(deleteAdminContactMessage(created.id)).toBe(true);
   });
 });
