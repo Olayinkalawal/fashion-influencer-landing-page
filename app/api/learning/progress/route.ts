@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
 import { getLearningMemberKey } from "@/lib/learning/member-key";
 import { mockCourses } from "@/lib/learning/mock-data";
 import { updateInMemoryLessonProgress, ensureInMemoryEnrolment } from "@/lib/learning/progress-store";
+import { upsertInMemoryCourseCpdRecord } from "@/lib/learning/cpd-records-store";
 
 interface ProgressRequestBody {
   courseId: string;
@@ -34,6 +35,15 @@ export async function POST(request: Request) {
       body.watchedSeconds,
       totalLessons,
     );
+
+    if (enrolment.progressPct >= 100 && fallbackCourse) {
+      upsertInMemoryCourseCpdRecord({
+        memberKey,
+        courseId: body.courseId,
+        activity: `Completed ${fallbackCourse.title}`,
+        cpdHours: fallbackCourse.cpd_hours,
+      });
+    }
 
     return NextResponse.json({
       source: "mock",
@@ -100,6 +110,30 @@ export async function POST(request: Request) {
 
   if (enrolmentError) {
     return NextResponse.json({ message: enrolmentError.message }, { status: 500 });
+  }
+
+  if (progressPct >= 100) {
+    const activity = `Completed ${fallbackCourse?.title ?? body.courseId}`;
+    const date = new Date().toISOString().slice(0, 10);
+    const { data: existingRecord } = await supabase
+      .from("cpd_records")
+      .select("id")
+      .eq("member_id", member.id)
+      .eq("source", "course")
+      .eq("activity", activity)
+      .eq("date", date)
+      .single();
+
+    if (!existingRecord) {
+      await supabase.from("cpd_records").insert({
+        member_id: member.id,
+        source: "course",
+        activity,
+        cpd_hours: fallbackCourse?.cpd_hours ?? 0,
+        evidence_url: body.courseId,
+        date,
+      });
+    }
   }
 
   return NextResponse.json({

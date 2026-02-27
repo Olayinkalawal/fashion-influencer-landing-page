@@ -146,3 +146,4 @@ Learning APIs:
 - `/api/learning/courses`
 - `/api/learning/enrolments`
 - `/api/learning/progress`
+- `/api/learning/cpd-records`
