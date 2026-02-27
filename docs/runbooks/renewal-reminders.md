@@ -19,6 +19,10 @@ Send reminder emails 30/14/7/1 days before policy expiry.
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
+If using the Supabase Edge Function relay, also configure:
+- `APP_BASE_URL` (e.g., `https://<staging-domain>`)
+- `CRON_SECRET` (must match app cron secret)
+
 ## Job behavior
 - Reads `policies` and computes days to expiry.
 - Sends emails only for 30/14/7/1 day marks.
@@ -29,6 +33,17 @@ Send reminder emails 30/14/7/1 days before policy expiry.
 ```bash
 curl -X POST "https://<staging-domain>/api/cron/renewal-reminders" \
   -H "x-cron-secret: <CRON_SECRET>"
+```
+
+## Supabase Edge Function relay example
+```bash
+supabase functions deploy renewal-reminders
+
+supabase functions secrets set \
+  APP_BASE_URL=https://<staging-domain> \
+  CRON_SECRET=<CRON_SECRET>
+
+supabase functions invoke renewal-reminders --no-verify-jwt
 ```
 
 ## Expected response

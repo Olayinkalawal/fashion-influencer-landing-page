@@ -1,7 +1,8 @@
-// Supabase Edge Function placeholder for renewal reminders.
-// Deploy this function and configure a scheduled trigger to call it daily.
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+function normalizeBaseUrl(value: string) {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
 
 serve(async (request: Request) => {
   if (request.method !== "POST") {
@@ -11,13 +12,36 @@ serve(async (request: Request) => {
     });
   }
 
-  // In production, this function can call the app cron endpoint or
-  // include the renewal reminder logic directly in Deno runtime.
+  const appBaseUrl = Deno.env.get("APP_BASE_URL");
+  if (!appBaseUrl) {
+    return new Response(
+      JSON.stringify({
+        message: "Missing APP_BASE_URL env var for renewal reminder relay.",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const endpoint = `${normalizeBaseUrl(appBaseUrl)}/api/cron/renewal-reminders`;
+
+  const relayResponse = await fetch(endpoint, {
+    method: "POST",
+    headers: cronSecret ? { "x-cron-secret": cronSecret } : undefined,
+  });
+
+  const responseText = await relayResponse.text();
+
   return new Response(
     JSON.stringify({
-      status: "scheduled",
-      message: "Invoke /api/cron/renewal-reminders from this function runtime.",
+      status: relayResponse.ok ? "ok" : "error",
+      endpoint,
+      upstream_status: relayResponse.status,
+      upstream_body: responseText,
     }),
-    { status: 200, headers: { "Content-Type": "application/json" } },
+    {
+      status: relayResponse.ok ? 200 : 502,
+      headers: { "Content-Type": "application/json" },
+    },
   );
 });
