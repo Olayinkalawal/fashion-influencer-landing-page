@@ -1,0 +1,65 @@
+name: Netlify Staging Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Netlify deployment prerequisites
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: npm run predeploy:netlify:staging
+
+      - name: Deploy to Netlify staging
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: npm run deploy:netlify:staging
+
+      - name: Run staging smoke verification
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$STAGING_URL" ]; then
+            echo "Skipping smoke verification: STAGING_URL secret is not set."
+            exit 0
+          fi
+          npm run verify:staging
+
+      - name: Run Stripe webhook verification
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$STAGING_URL" ] || [ -z "$STRIPE_WEBHOOK_SECRET" ]; then
+            echo "Skipping Stripe verification: STAGING_URL or STRIPE_WEBHOOK_SECRET missing."
+            exit 0
+          fi
+          npm run verify:stripe:webhook
+
+      - name: Run renewal cron verification
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$STAGING_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Skipping renewal verification: STAGING_URL or CRON_SECRET missing."
+            exit 0
+          fi
+          npm run verify:renewal:cron

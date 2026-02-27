@@ -44,18 +44,33 @@ Configure these in Netlify Site Settings → Environment variables:
    - `/quote`, `/quote/review`, `/quote/payment`
    - `/portal`, `/portal/documents`, `/portal/renewal`
    - `/learning`, `/learning/my-courses`, `/learning/certificates`
-   - `/admin`, `/admin/members`, `/admin/courses`
+   - `/admin`, `/admin/members`, `/admin/courses`, `/admin/audit`
 7. Verify API health:
+   - `POST /api/nexus/quote`
+   - `GET /api/nexus/quote/:ref`
+   - `POST /api/stripe/checkout`
+   - `POST /api/cron/renewal-reminders`
 8. Optional smoke validation script:
    - `STAGING_URL=https://<your-staging-domain> npm run verify:staging`
    - add `CRON_SECRET=...` to include cron endpoint check.
 9. Optional dedicated integration checks:
    - `STAGING_URL=... STRIPE_WEBHOOK_SECRET=... npm run verify:stripe:webhook`
    - `STAGING_URL=... CRON_SECRET=... npm run verify:renewal:cron`
-   - `POST /api/nexus/quote`
-   - `GET /api/nexus/quote/:ref`
-   - `POST /api/stripe/checkout`
-   - `POST /api/cron/renewal-reminders`
+
+## GitHub Actions deployment path
+Use the manual workflow `.github/workflows/netlify-staging.yml` to run staging deployment and verification in CI.
+
+### Required repository secrets
+- `NETLIFY_AUTH_TOKEN`
+- `NETLIFY_SITE_ID`
+- `STAGING_URL` (for verification scripts)
+- `CRON_SECRET` (for cron verification and optional smoke cron check)
+- `STRIPE_WEBHOOK_SECRET` (for signed webhook verification)
+
+### Execution
+1. Open Actions → **Netlify Staging Deploy**
+2. Trigger **Run workflow**
+3. Review the deploy and verification step results
 
 ## Rollback
 - Re-deploy previous successful Netlify build from Deploys tab.

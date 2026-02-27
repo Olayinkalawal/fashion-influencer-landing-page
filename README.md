@@ -36,6 +36,13 @@ Create a `.env.local` file from `.env.example` before testing authentication and
 
 - GitHub Actions workflow at `.github/workflows/ci.yml`
 - Runs: lint, test, typecheck, and build on push/PR
+- Manual staging deployment workflow at `.github/workflows/netlify-staging.yml`
+- Staging deployment workflow consumes repository secrets:
+  - `NETLIFY_AUTH_TOKEN`
+  - `NETLIFY_SITE_ID`
+  - `STAGING_URL`
+  - `STRIPE_WEBHOOK_SECRET`
+  - `CRON_SECRET`
 
 ## Runbooks
 
