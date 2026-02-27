@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStripeServerClient } from "@/lib/integrations/stripe/client";
 import { getQuoteStatusWithFallback } from "@/lib/nexus/service";
 import { env } from "@/lib/config/env";
+import { persistCheckoutSessionCreated } from "@/lib/nexus/persistence";
 
 interface CheckoutRequestBody {
   quote_ref: string;
@@ -61,6 +62,13 @@ export async function POST(request: Request) {
       quote_ref: quote.quote_ref,
       case_ref: quote.case_ref,
     },
+  });
+
+  await persistCheckoutSessionCreated({
+    quoteRef: quote.quote_ref,
+    sessionId: session.id,
+    amountGbp: quote.premium.total_gbp,
+    paymentMethod: "Credit Card",
   });
 
   return NextResponse.json({

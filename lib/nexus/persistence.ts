@@ -14,6 +14,19 @@ interface PersistQuoteInput {
   response: QuoteStatusResponse;
 }
 
+async function resolveQuoteRowByReference(reference: string) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const { data: quoteRow } = await supabase
+    .from("quotes")
+    .select("id, case_id, quote_ref, total_premium_gbp")
+    .eq("quote_ref", reference)
+    .single();
+
+  return quoteRow ?? null;
+}
+
 async function getDefaultSchemeId() {
   const supabase = getSupabaseAdminClient() as any;
   if (!supabase) return null;
@@ -256,11 +269,7 @@ async function resolveCaseIdByReference(reference: string) {
   const supabase = getSupabaseAdminClient() as any;
   if (!supabase) return null;
 
-  const { data: quoteRow } = await supabase
-    .from("quotes")
-    .select("case_id")
-    .eq("quote_ref", reference)
-    .single();
+  const quoteRow = await resolveQuoteRowByReference(reference);
 
   if (quoteRow?.case_id) {
     return quoteRow.case_id as string;
@@ -394,4 +403,105 @@ export async function fetchStoredQuoteBundle(reference: string) {
     policy_number: policyRow?.policy_number ?? undefined,
     documents: ((documentRows ?? []) as PolicyDocument[]) ?? [],
   };
+}
+
+export async function hasPersistedPaymentEvent(eventId: string) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return false;
+
+  try {
+    const { data, error } = await supabase
+      .from("payment_events")
+      .select("id")
+      .eq("event_id", eventId)
+      .single();
+
+    if (error) return false;
+    return Boolean(data?.id);
+  } catch {
+    return false;
+  }
+}
+
+export async function persistCheckoutSessionCreated(input: {
+  quoteRef: string;
+  sessionId: string;
+  amountGbp: number;
+  paymentMethod: string;
+}) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return;
+
+  const quoteRow = await resolveQuoteRowByReference(input.quoteRef);
+  if (!quoteRow) {
+    log("warn", "Unable to persist checkout session: quote not found", {
+      quoteRef: input.quoteRef,
+    });
+    return;
+  }
+
+  await supabase.from("payments").upsert(
+    {
+      case_id: quoteRow.case_id,
+      quote_id: quoteRow.id,
+      payment_method: input.paymentMethod,
+      status: "Pending",
+      amount_gbp: input.amountGbp,
+      provider_ref: input.sessionId,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "provider_ref" },
+  );
+}
+
+export async function persistPaymentCompletion(input: {
+  quoteRef: string;
+  eventId: string;
+}) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return;
+
+  const quoteRow = await resolveQuoteRowByReference(input.quoteRef);
+  if (!quoteRow) {
+    log("warn", "Unable to persist payment completion: quote not found", {
+      quoteRef: input.quoteRef,
+    });
+    return;
+  }
+
+  await supabase.from("payment_events").upsert(
+    {
+      event_id: input.eventId,
+      quote_ref: input.quoteRef,
+      event_type: "checkout.session.completed",
+    },
+    { onConflict: "event_id" },
+  );
+
+  const { data: paymentRow } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("quote_id", quoteRow.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (paymentRow?.id) {
+    await supabase
+      .from("payments")
+      .update({
+        status: "Completed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", paymentRow.id);
+  } else {
+    await supabase.from("payments").insert({
+      case_id: quoteRow.case_id,
+      quote_id: quoteRow.id,
+      payment_method: "Credit Card",
+      status: "Completed",
+      amount_gbp: quoteRow.total_premium_gbp,
+      provider_ref: null,
+    });
+  }
 }
