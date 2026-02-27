@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const processed = processCheckoutCompleted({
+    const processed = await processCheckoutCompleted({
       eventId: mock.event_id,
       quoteRef: mock.quote_ref,
     });
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const quoteRef = session.metadata?.quote_ref;
-    const result = processCheckoutCompleted({
+    const result = await processCheckoutCompleted({
       eventId: event.id,
       quoteRef: quoteRef ?? "",
     });

@@ -6,7 +6,7 @@ export interface CheckoutCompletedInput {
   quoteRef: string;
 }
 
-export function processCheckoutCompleted({ eventId, quoteRef }: CheckoutCompletedInput) {
+export async function processCheckoutCompleted({ eventId, quoteRef }: CheckoutCompletedInput) {
   if (!quoteRef) {
     throw new Error("Missing quote reference in checkout session metadata");
   }
@@ -18,7 +18,7 @@ export function processCheckoutCompleted({ eventId, quoteRef }: CheckoutComplete
     };
   }
 
-  const bindResult = bindQuote(quoteRef);
+  const bindResult = await bindQuote(quoteRef);
   markEventProcessed(eventId);
 
   return {

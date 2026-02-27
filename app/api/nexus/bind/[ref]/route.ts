@@ -6,7 +6,7 @@ export async function POST(
   { params }: { params: { ref: string } },
 ) {
   try {
-    const bindResult = bindQuote(params.ref);
+    const bindResult = await bindQuote(params.ref);
     return NextResponse.json(bindResult);
   } catch (error) {
     return NextResponse.json(

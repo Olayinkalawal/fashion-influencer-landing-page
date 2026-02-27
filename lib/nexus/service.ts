@@ -11,6 +11,7 @@ import type {
 import { calculatePremium, evaluateReferralReasons } from "@/lib/nexus/rating";
 import { getQuoteByRef, saveQuote, updateStoredQuote } from "@/lib/nexus/store";
 import {
+  fetchStoredQuoteBundle,
   fetchDocumentsByReference,
   fetchQuoteStatusByReference,
   persistEndorsement,
@@ -86,6 +87,27 @@ export function getQuoteStatus(reference: string): QuoteStatusResponse | null {
   return quote?.response ?? null;
 }
 
+async function getStoredQuoteWithFallback(reference: string) {
+  const memoryQuote = getQuoteByRef(reference);
+  if (memoryQuote) {
+    return memoryQuote;
+  }
+
+  const persisted = await fetchStoredQuoteBundle(reference);
+  if (!persisted) {
+    return null;
+  }
+
+  saveQuote(persisted.response.quote_ref, persisted.response.case_ref, {
+    payload: persisted.payload,
+    response: persisted.response,
+    policy_number: persisted.policy_number,
+    documents: persisted.documents,
+  });
+
+  return getQuoteByRef(reference);
+}
+
 export async function getQuoteStatusWithFallback(reference: string) {
   const memoryQuote = getQuoteStatus(reference);
   if (memoryQuote) {
@@ -95,8 +117,8 @@ export async function getQuoteStatusWithFallback(reference: string) {
   return fetchQuoteStatusByReference(reference);
 }
 
-export function bindQuote(reference: string): BindResponse {
-  const existing = getQuoteByRef(reference);
+export async function bindQuote(reference: string): Promise<BindResponse> {
+  const existing = await getStoredQuoteWithFallback(reference);
 
   if (!existing) {
     throw new Error("Quote not found");

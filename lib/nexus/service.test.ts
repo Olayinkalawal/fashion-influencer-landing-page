@@ -29,7 +29,7 @@ describe("nexus quote service", () => {
   it("returns quote and documents through fallback helpers from in-memory store", async () => {
     const payload = buildQuotePayload();
     const created = createQuote(payload);
-    bindQuote(created.quote_ref);
+    await bindQuote(created.quote_ref);
 
     const quote = await getQuoteStatusWithFallback(created.quote_ref);
     const documents = await getDocumentsWithFallback(created.quote_ref);
@@ -38,11 +38,11 @@ describe("nexus quote service", () => {
     expect(documents).toHaveLength(7);
   });
 
-  it("binds a non-referral quote and exposes 7 policy documents", () => {
+  it("binds a non-referral quote and exposes 7 policy documents", async () => {
     const payload = buildQuotePayload();
     const created = createQuote(payload);
 
-    const bindResult = bindQuote(created.quote_ref);
+    const bindResult = await bindQuote(created.quote_ref);
     expect(bindResult.status).toBe("On Cover");
     expect(bindResult.policy_number).toMatch(/^EYA-\d{4}-\d{5}$/);
     expect(bindResult.documents).toHaveLength(7);
@@ -51,7 +51,7 @@ describe("nexus quote service", () => {
     expect(documents).toHaveLength(7);
   });
 
-  it("rejects bind when referral is required", () => {
+  it("rejects bind when referral is required", async () => {
     const payload = buildQuotePayload({
       general: {
         ...buildQuotePayload().general,
@@ -62,7 +62,7 @@ describe("nexus quote service", () => {
       },
     });
     const created = createQuote(payload);
-    expect(() => bindQuote(created.quote_ref)).toThrow(
+    await expect(bindQuote(created.quote_ref)).rejects.toThrow(
       "Quote is pending referral and cannot be bound automatically",
     );
   });
@@ -78,10 +78,10 @@ describe("nexus quote service", () => {
     expect(renewed.premium.total_gbp).toBeGreaterThan(0);
   });
 
-  it("records endorsement for on-cover policies only", () => {
+  it("records endorsement for on-cover policies only", async () => {
     const payload = buildQuotePayload();
     const created = createQuote(payload);
-    bindQuote(created.quote_ref);
+    await bindQuote(created.quote_ref);
 
     const endorsed = endorseQuote(created.quote_ref, { note: "Change of address" });
     expect(endorsed.status).toBe("On Cover");

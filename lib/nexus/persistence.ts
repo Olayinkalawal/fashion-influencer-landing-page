@@ -337,3 +337,61 @@ export async function fetchDocumentsByReference(
 
   return documents as PolicyDocument[];
 }
+
+export async function fetchStoredQuoteBundle(reference: string) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const caseId = await resolveCaseIdByReference(reference);
+  if (!caseId) return null;
+
+  const { data: caseRow } = await supabase
+    .from("cases")
+    .select("id, case_ref, status, referral_required, referral_reason, created_at")
+    .eq("id", caseId)
+    .single();
+
+  if (!caseRow) return null;
+
+  const { data: quoteRow } = await supabase
+    .from("quotes")
+    .select("quote_ref, customer_payload, premium_breakdown, created_at")
+    .eq("case_id", caseId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!quoteRow) return null;
+
+  const { data: policyRow } = await supabase
+    .from("policies")
+    .select("policy_number")
+    .eq("case_id", caseId)
+    .single();
+
+  const { data: documentRows } = await supabase
+    .from("documents")
+    .select("document_type, document_url")
+    .eq("case_id", caseId)
+    .order("created_at", { ascending: true });
+
+  return {
+    payload: quoteRow.customer_payload as QuoteApplicationPayload,
+    response: {
+      case_ref: caseRow.case_ref,
+      quote_ref: quoteRow.quote_ref,
+      status: caseRow.status,
+      premium: quoteRow.premium_breakdown,
+      referral_required: Boolean(caseRow.referral_required),
+      referral_reasons: caseRow.referral_reason
+        ? String(caseRow.referral_reason)
+            .split(". ")
+            .map((item: string) => item.trim())
+            .filter(Boolean)
+        : [],
+      created_at: quoteRow.created_at ?? caseRow.created_at ?? new Date().toISOString(),
+    } satisfies QuoteStatusResponse,
+    policy_number: policyRow?.policy_number ?? undefined,
+    documents: ((documentRows ?? []) as PolicyDocument[]) ?? [],
+  };
+}
