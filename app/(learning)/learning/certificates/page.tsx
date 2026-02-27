@@ -1,14 +1,14 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { mockCourses } from "@/lib/learning/mock-data";
 
-const mockCertificates = [
-  {
-    id: "cert-1",
-    course_title: "Safeguarding Refresher 2026",
-    issued_on: "2026-02-10",
-    cpd_hours: 2.5,
-  },
-];
+const mockCertificates = mockCourses.map((course, index) => ({
+  id: `cert-${course.id}`,
+  course_id: course.id,
+  course_title: course.title,
+  issued_on: `2026-02-${10 + index}`,
+  cpd_hours: course.cpd_hours,
+}));
 
 export default function CertificatesPage() {
   return (
@@ -27,7 +27,12 @@ export default function CertificatesPage() {
             <CardContent className="text-sm text-muted-foreground">
               <p>Issued on: {certificate.issued_on}</p>
               <p>CPD hours: {certificate.cpd_hours}</p>
-              <a href="#" className="text-primary underline underline-offset-2">
+              <a
+                href={`/api/learning/certificates/${certificate.course_id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
                 Download certificate PDF (template)
               </a>
             </CardContent>

@@ -92,6 +92,7 @@ Learning surface includes:
 - `/learning/certificates`
 - `/learning/live`
 - `/learning/live/[id]`
+- `/api/learning/certificates/[courseId]` (certificate PDF output)
 
 Admin surface includes:
 
