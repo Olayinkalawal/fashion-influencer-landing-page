@@ -10,18 +10,41 @@ export function PolicyStatusWidget() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const quoteRef = window.localStorage.getItem("eya_last_quote_ref");
-    if (!quoteRef) return;
+    async function loadPolicyStatus() {
+      const storedQuoteRef = window.localStorage.getItem("eya_last_quote_ref");
+      let quoteRef = storedQuoteRef;
 
-    Promise.all([
-      fetch(`/api/nexus/quote/${quoteRef}`).then((response) => response.json()),
-      fetch(`/api/nexus/documents/${quoteRef}`).then((response) => response.json()),
-    ])
-      .then(([quoteBody, docsBody]) => {
-        setQuote(quoteBody as QuoteResponse);
-        setDocuments((docsBody as { documents?: PolicyDocument[] }).documents ?? []);
-      })
-      .catch(() => setError("Unable to fetch latest policy details."));
+      if (!quoteRef) {
+        const latestResponse = await fetch("/api/portal/latest-quote");
+        const latestBody = (await latestResponse.json()) as {
+          latest_quote?: { quote_ref?: string };
+        };
+        quoteRef = latestBody.latest_quote?.quote_ref ?? null;
+        if (quoteRef) {
+          window.localStorage.setItem("eya_last_quote_ref", quoteRef);
+        }
+      }
+
+      if (!quoteRef) {
+        return;
+      }
+
+      const [quoteResponse, docsResponse] = await Promise.all([
+        fetch(`/api/nexus/quote/${quoteRef}`),
+        fetch(`/api/nexus/documents/${quoteRef}`),
+      ]);
+
+      if (!quoteResponse.ok || !docsResponse.ok) {
+        throw new Error("Unable to fetch latest policy details.");
+      }
+
+      const quoteBody = (await quoteResponse.json()) as QuoteResponse;
+      const docsBody = (await docsResponse.json()) as { documents?: PolicyDocument[] };
+      setQuote(quoteBody);
+      setDocuments(docsBody.documents ?? []);
+    }
+
+    loadPolicyStatus().catch(() => setError("Unable to fetch latest policy details."));
   }, []);
 
   return (

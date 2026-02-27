@@ -14,6 +14,35 @@ interface PersistQuoteInput {
   response: QuoteStatusResponse;
 }
 
+async function upsertMemberFromPayload(payload: QuoteApplicationPayload) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const email = payload.your_details.email?.trim().toLowerCase();
+  if (!email) return null;
+
+  const { data, error } = await supabase
+    .from("members")
+    .upsert(
+      {
+        email,
+        name: `${payload.your_details.first_name} ${payload.your_details.last_name}`.trim(),
+        org_name: payload.your_details.org_name || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "email" },
+    )
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    log("warn", "Unable to upsert member from quote payload", { error: error?.message, email });
+    return null;
+  }
+
+  return (data as any).id as string;
+}
+
 async function resolveQuoteRowByReference(reference: string) {
   const supabase = getSupabaseAdminClient() as any;
   if (!supabase) return null;
@@ -51,6 +80,7 @@ export async function persistQuoteCreated({ payload, response }: PersistQuoteInp
 
   const schemeId = await getDefaultSchemeId();
   if (!schemeId) return;
+  const memberId = await upsertMemberFromPayload(payload);
 
   const { data: caseRow, error: caseError } = await supabase
     .from("cases")
@@ -58,6 +88,7 @@ export async function persistQuoteCreated({ payload, response }: PersistQuoteInp
       {
         case_ref: response.case_ref,
         scheme_id: schemeId,
+        member_id: memberId,
         status: response.status,
         referral_required: response.referral_required,
         referral_reason: response.referral_reasons.join(" "),
@@ -402,6 +433,58 @@ export async function fetchStoredQuoteBundle(reference: string) {
     } satisfies QuoteStatusResponse,
     policy_number: policyRow?.policy_number ?? undefined,
     documents: ((documentRows ?? []) as PolicyDocument[]) ?? [],
+  };
+}
+
+export async function fetchLatestQuoteReferenceByMemberEmail(email: string) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) return null;
+
+  const { data: memberRow } = await supabase
+    .from("members")
+    .select("id, nexus_case_ref")
+    .eq("email", normalizedEmail)
+    .single();
+
+  if (!memberRow?.id) return null;
+
+  let { data: caseRow } = await supabase
+    .from("cases")
+    .select("id, case_ref, status, created_at")
+    .eq("member_id", memberRow.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!caseRow && memberRow.nexus_case_ref) {
+    const fallbackCaseResult = await supabase
+      .from("cases")
+      .select("id, case_ref, status, created_at")
+      .eq("case_ref", memberRow.nexus_case_ref)
+      .single();
+    caseRow = fallbackCaseResult.data;
+  }
+
+  if (!caseRow?.id) return null;
+
+  const { data: quoteRow } = await supabase
+    .from("quotes")
+    .select("quote_ref, created_at")
+    .eq("case_id", caseRow.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!quoteRow?.quote_ref) return null;
+
+  return {
+    quote_ref: quoteRow.quote_ref as string,
+    case_ref: caseRow.case_ref as string,
+    status: caseRow.status as string,
+    quote_created_at: quoteRow.created_at as string | null,
   };
 }
 

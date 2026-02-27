@@ -8,15 +8,34 @@ export function DocumentsList() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const quoteRef = window.localStorage.getItem("eya_last_quote_ref");
-    if (!quoteRef) return;
+    async function loadDocuments() {
+      const storedQuoteRef = window.localStorage.getItem("eya_last_quote_ref");
+      let quoteRef = storedQuoteRef;
 
-    fetch(`/api/nexus/documents/${quoteRef}`)
-      .then((response) => response.json())
-      .then((body: { documents?: PolicyDocument[] }) => {
-        setDocuments(body.documents ?? []);
-      })
-      .catch(() => setError("Unable to load documents."));
+      if (!quoteRef) {
+        const latestResponse = await fetch("/api/portal/latest-quote");
+        const latestBody = (await latestResponse.json()) as {
+          latest_quote?: { quote_ref?: string };
+        };
+        quoteRef = latestBody.latest_quote?.quote_ref ?? null;
+        if (quoteRef) {
+          window.localStorage.setItem("eya_last_quote_ref", quoteRef);
+        }
+      }
+
+      if (!quoteRef) {
+        return;
+      }
+
+      const response = await fetch(`/api/nexus/documents/${quoteRef}`);
+      if (!response.ok) {
+        throw new Error("Unable to load documents.");
+      }
+      const body = (await response.json()) as { documents?: PolicyDocument[] };
+      setDocuments(body.documents ?? []);
+    }
+
+    loadDocuments().catch(() => setError("Unable to load documents."));
   }, []);
 
   if (error) return <p className="text-sm text-destructive">{error}</p>;

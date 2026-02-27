@@ -12,7 +12,25 @@ export function RenewalActions() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setQuoteRef(window.localStorage.getItem("eya_last_quote_ref"));
+    async function resolveQuoteRef() {
+      const storedQuoteRef = window.localStorage.getItem("eya_last_quote_ref");
+      if (storedQuoteRef) {
+        setQuoteRef(storedQuoteRef);
+        return;
+      }
+
+      const latestResponse = await fetch("/api/portal/latest-quote");
+      const latestBody = (await latestResponse.json()) as {
+        latest_quote?: { quote_ref?: string };
+      };
+      const latestQuoteRef = latestBody.latest_quote?.quote_ref ?? null;
+      if (latestQuoteRef) {
+        window.localStorage.setItem("eya_last_quote_ref", latestQuoteRef);
+      }
+      setQuoteRef(latestQuoteRef);
+    }
+
+    resolveQuoteRef().catch(() => setError("Unable to load latest quote reference."));
   }, []);
 
   async function submitRenewal() {

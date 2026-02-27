@@ -13,7 +13,7 @@ export default async function AdminHomePage() {
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">Admin console</h1>
       <p className="mt-2 text-muted-foreground">
-        Phase 1 placeholder. Role-based protection and management tooling are added in Phase 2+.
+        Manage underwriting operations, learning content, referrals, and support queues.
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
         Signed in as {session.user.email} ({session.user.role}).
