@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStripeServerClient } from "@/lib/integrations/stripe/client";
-import { getQuoteStatus } from "@/lib/nexus/service";
+import { getQuoteStatusWithFallback } from "@/lib/nexus/service";
 import { env } from "@/lib/config/env";
 
 interface CheckoutRequestBody {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "quote_ref is required" }, { status: 400 });
   }
 
-  const quote = getQuoteStatus(body.quote_ref);
+  const quote = await getQuoteStatusWithFallback(body.quote_ref);
   if (!quote) {
     return NextResponse.json({ message: "Quote not found" }, { status: 404 });
   }

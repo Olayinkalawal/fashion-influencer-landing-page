@@ -3,6 +3,8 @@ import {
   bindQuote,
   createQuote,
   endorseQuote,
+  getDocumentsWithFallback,
+  getQuoteStatusWithFallback,
   getDocuments,
   getQuoteStatus,
   renewQuote,
@@ -22,6 +24,18 @@ describe("nexus quote service", () => {
 
   it("returns null for unknown references", () => {
     expect(getQuoteStatus("UNKNOWN-REF")).toBeNull();
+  });
+
+  it("returns quote and documents through fallback helpers from in-memory store", async () => {
+    const payload = buildQuotePayload();
+    const created = createQuote(payload);
+    bindQuote(created.quote_ref);
+
+    const quote = await getQuoteStatusWithFallback(created.quote_ref);
+    const documents = await getDocumentsWithFallback(created.quote_ref);
+
+    expect(quote?.quote_ref).toBe(created.quote_ref);
+    expect(documents).toHaveLength(7);
   });
 
   it("binds a non-referral quote and exposes 7 policy documents", () => {

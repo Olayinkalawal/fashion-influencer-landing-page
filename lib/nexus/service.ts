@@ -11,6 +11,8 @@ import type {
 import { calculatePremium, evaluateReferralReasons } from "@/lib/nexus/rating";
 import { getQuoteByRef, saveQuote, updateStoredQuote } from "@/lib/nexus/store";
 import {
+  fetchDocumentsByReference,
+  fetchQuoteStatusByReference,
   persistEndorsement,
   persistQuoteBound,
   persistQuoteCreated,
@@ -84,6 +86,15 @@ export function getQuoteStatus(reference: string): QuoteStatusResponse | null {
   return quote?.response ?? null;
 }
 
+export async function getQuoteStatusWithFallback(reference: string) {
+  const memoryQuote = getQuoteStatus(reference);
+  if (memoryQuote) {
+    return memoryQuote;
+  }
+
+  return fetchQuoteStatusByReference(reference);
+}
+
 export function bindQuote(reference: string): BindResponse {
   const existing = getQuoteByRef(reference);
 
@@ -140,6 +151,15 @@ export function getDocuments(reference: string) {
     return null;
   }
   return existing.documents ?? [];
+}
+
+export async function getDocumentsWithFallback(reference: string) {
+  const memoryDocuments = getDocuments(reference);
+  if (memoryDocuments !== null) {
+    return memoryDocuments;
+  }
+
+  return fetchDocumentsByReference(reference);
 }
 
 export function renewQuote(reference: string, payload: QuoteApplicationPayload): RenewResponse {

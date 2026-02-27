@@ -1,4 +1,10 @@
-import type { BindResponse, EndorseResponse, QuoteStatusResponse, RenewResponse } from "@/lib/domain/nexus";
+import type {
+  BindResponse,
+  EndorseResponse,
+  PolicyDocument,
+  QuoteStatusResponse,
+  RenewResponse,
+} from "@/lib/domain/nexus";
 import type { QuoteApplicationPayload } from "@/lib/domain/quote";
 import { getSupabaseAdminClient } from "@/lib/integrations/supabase/admin";
 import { log } from "@/lib/logger";
@@ -244,4 +250,90 @@ export async function persistEndorsement(reference: string, endorsement: Endorse
       endorsement_ref: endorsement.endorsement_ref,
     },
   });
+}
+
+async function resolveCaseIdByReference(reference: string) {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const { data: quoteRow } = await supabase
+    .from("quotes")
+    .select("case_id")
+    .eq("quote_ref", reference)
+    .single();
+
+  if (quoteRow?.case_id) {
+    return quoteRow.case_id as string;
+  }
+
+  const { data: caseRow } = await supabase
+    .from("cases")
+    .select("id")
+    .eq("case_ref", reference)
+    .single();
+
+  return caseRow?.id ?? null;
+}
+
+export async function fetchQuoteStatusByReference(reference: string): Promise<QuoteStatusResponse | null> {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const caseId = await resolveCaseIdByReference(reference);
+  if (!caseId) return null;
+
+  const { data: caseRow } = await supabase
+    .from("cases")
+    .select("id, case_ref, status, referral_required, referral_reason, created_at")
+    .eq("id", caseId)
+    .single();
+
+  if (!caseRow) return null;
+
+  const { data: quoteRow } = await supabase
+    .from("quotes")
+    .select("quote_ref, premium_breakdown, created_at")
+    .eq("case_id", caseId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!quoteRow) return null;
+
+  return {
+    case_ref: caseRow.case_ref,
+    quote_ref: quoteRow.quote_ref,
+    status: caseRow.status,
+    premium: quoteRow.premium_breakdown,
+    referral_required: Boolean(caseRow.referral_required),
+    referral_reasons: caseRow.referral_reason
+      ? String(caseRow.referral_reason)
+          .split(". ")
+          .map((item: string) => item.trim())
+          .filter(Boolean)
+      : [],
+    created_at: quoteRow.created_at ?? caseRow.created_at ?? new Date().toISOString(),
+  };
+}
+
+export async function fetchDocumentsByReference(
+  reference: string,
+): Promise<PolicyDocument[] | null> {
+  const supabase = getSupabaseAdminClient() as any;
+  if (!supabase) return null;
+
+  const caseId = await resolveCaseIdByReference(reference);
+  if (!caseId) return null;
+
+  const { data: documents } = await supabase
+    .from("documents")
+    .select("document_type, document_url")
+    .eq("case_id", caseId)
+    .order("created_at", { ascending: true });
+
+  if (!documents) {
+    return [];
+  }
+
+  return documents as PolicyDocument[];
 }
