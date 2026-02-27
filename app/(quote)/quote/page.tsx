@@ -1,5 +1,5 @@
 import { PageShell } from "@/components/layout/page-shell";
-import { QuoteDemoForm } from "@/components/quote/quote-demo-form";
+import { Step1YourDetailsForm } from "@/components/quote/step1-your-details";
 
 export default function QuoteStartPage() {
   return (
@@ -7,10 +7,10 @@ export default function QuoteStartPage() {
       <div className="space-y-6">
         <h1 className="text-3xl font-semibold tracking-tight">Quote journey</h1>
         <p className="text-muted-foreground">
-          Phase 3 baseline: canonical quote payload validation + internal Nexus Core quote API.
+          Step-by-step EYA underwriting journey with local draft persistence.
         </p>
       </div>
-      <QuoteDemoForm />
+      <Step1YourDetailsForm />
     </PageShell>
   );
 }

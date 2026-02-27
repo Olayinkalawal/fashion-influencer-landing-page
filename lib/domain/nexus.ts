@@ -25,3 +25,23 @@ export interface QuoteResponse {
 export interface QuoteStatusResponse extends QuoteResponse {
   created_at: string;
 }
+
+export interface PolicyDocument {
+  document_type:
+    | "PI Policy Wording"
+    | "Statement of Facts"
+    | "Invoice"
+    | "Notice to Policyholders"
+    | "Policy Wording"
+    | "Policy Summary"
+    | "Policy Schedule";
+  document_url: string;
+}
+
+export interface BindResponse {
+  case_ref: string;
+  quote_ref: string;
+  policy_number: string;
+  status: "On Cover";
+  documents: PolicyDocument[];
+}

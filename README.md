@@ -49,3 +49,21 @@ Phase 2 baseline scaffolding now includes:
 - Route middleware protection for `/portal/*` and `/admin/*`
 - Supabase client/server helpers
 - Initial SQL migration for members, Nexus Core entities, and CPD tables
+
+Phase 3/4 baseline now includes:
+
+- Canonical quote payload domain model + Zod schema validation
+- Internal Nexus-style quote endpoints:
+  - `POST /api/nexus/quote`
+  - `GET /api/nexus/quote/:ref`
+- Deterministic pricing engine with extension and referral rules
+- Multi-step quote routes:
+  - `/quote`
+  - `/quote/general`
+  - `/quote/assumptions`
+  - `/quote/declaration`
+  - `/quote/ern`
+  - `/quote/review`
+  - `/quote/payment`
+  - `/quote/success`
+- Draft persistence via browser localStorage
