@@ -10,6 +10,12 @@ import type {
 } from "@/lib/domain/nexus";
 import { calculatePremium, evaluateReferralReasons } from "@/lib/nexus/rating";
 import { getQuoteByRef, saveQuote, updateStoredQuote } from "@/lib/nexus/store";
+import {
+  persistEndorsement,
+  persistQuoteBound,
+  persistQuoteCreated,
+  persistRenewal,
+} from "@/lib/nexus/persistence";
 
 const DOCUMENT_TYPES: PolicyDocument["document_type"][] = [
   "PI Policy Wording",
@@ -68,6 +74,8 @@ export function createQuote(payload: QuoteApplicationPayload): QuoteResponse {
     response,
   });
 
+  void persistQuoteCreated({ payload, response });
+
   return response;
 }
 
@@ -113,13 +121,17 @@ export function bindQuote(reference: string): BindResponse {
     },
   }));
 
-  return {
+  const result: BindResponse = {
     case_ref: existing.response.case_ref,
     quote_ref: existing.response.quote_ref,
     policy_number: policyNumber,
     status: "On Cover",
     documents,
   };
+
+  void persistQuoteBound(reference, existing.payload, result);
+
+  return result;
 }
 
 export function getDocuments(reference: string) {
@@ -152,13 +164,17 @@ export function renewQuote(reference: string, payload: QuoteApplicationPayload):
     ],
   }));
 
-  return {
+  const response: RenewResponse = {
     case_ref: existing.response.case_ref,
     previous_quote_ref: existing.response.quote_ref,
     renewal_ref: renewalRef,
     status: quote.status === "Pending Referral" ? "Pending Referral" : "Quotation",
     premium: quote.premium,
   };
+
+  void persistRenewal(reference, payload, response);
+
+  return response;
 }
 
 export function endorseQuote(
@@ -189,11 +205,15 @@ export function endorseQuote(
     ],
   }));
 
-  return {
+  const response: EndorseResponse = {
     case_ref: existing.response.case_ref,
     quote_ref: existing.response.quote_ref,
     endorsement_ref: endorsementRef,
     status: "On Cover",
     message: "Endorsement recorded",
   };
+
+  void persistEndorsement(reference, response, payload);
+
+  return response;
 }
