@@ -6,6 +6,7 @@ import {
   deleteAdminContactMessage,
   deleteAdminCourse,
   deleteAdminLiveSession,
+  listAdminAuditEvents,
   listAdminContactMessages,
   listAdminCourses,
   listAdminLiveSessions,
@@ -41,8 +42,10 @@ describe("admin in-memory store", () => {
 
   it("updates referral status", () => {
     const first = listAdminReferrals()[0];
+    const beforeCount = listAdminAuditEvents().length;
     const updated = updateAdminReferral(first.id, { status: "Resolved" });
     expect(updated?.status).toBe("Resolved");
+    expect(listAdminAuditEvents().length).toBeGreaterThan(beforeCount);
   });
 
   it("creates and deletes contact queue messages", () => {

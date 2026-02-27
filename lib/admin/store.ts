@@ -38,6 +38,15 @@ interface AdminContactMessageRecord {
   created_at: string;
 }
 
+interface AdminAuditEventRecord {
+  id: string;
+  case_ref: string | null;
+  actor_role: string;
+  action: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 const courseStore = new Map<string, AdminCourseRecord>(
   mockCourses.map((course) => [
     course.id,
@@ -108,6 +117,34 @@ const contactQueueStore = new Map<string, AdminContactMessageRecord>([
   ],
 ]);
 
+const auditEventStore = new Map<string, AdminAuditEventRecord>([
+  [
+    "audit-1",
+    {
+      id: "audit-1",
+      case_ref: "C20260001",
+      actor_role: "system",
+      action: "referral_created",
+      payload: {
+        referral_type: "Underwriting",
+        status: "Pending",
+      },
+      created_at: new Date().toISOString(),
+    },
+  ],
+]);
+
+function createAuditEvent(input: Omit<AdminAuditEventRecord, "id" | "created_at">) {
+  const id = `audit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const created: AdminAuditEventRecord = {
+    id,
+    created_at: new Date().toISOString(),
+    ...input,
+  };
+  auditEventStore.set(id, created);
+  return created;
+}
+
 export function listAdminCourses() {
   return Array.from(courseStore.values());
 }
@@ -116,6 +153,12 @@ export function createAdminCourse(course: Omit<AdminCourseRecord, "id">) {
   const id = `course-${Date.now()}`;
   const created: AdminCourseRecord = { id, ...course };
   courseStore.set(id, created);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_course_created",
+    payload: { course_id: id, title: course.title },
+  });
   return created;
 }
 
@@ -124,11 +167,26 @@ export function updateAdminCourse(id: string, updates: Partial<AdminCourseRecord
   if (!existing) return null;
   const updated = { ...existing, ...updates, id: existing.id };
   courseStore.set(id, updated);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_course_updated",
+    payload: { course_id: id, updated_fields: Object.keys(updates) },
+  });
   return updated;
 }
 
 export function deleteAdminCourse(id: string) {
-  return courseStore.delete(id);
+  const deleted = courseStore.delete(id);
+  if (deleted) {
+    createAuditEvent({
+      case_ref: null,
+      actor_role: "admin",
+      action: "admin_course_deleted",
+      payload: { course_id: id },
+    });
+  }
+  return deleted;
 }
 
 export function listAdminLiveSessions() {
@@ -139,6 +197,12 @@ export function createAdminLiveSession(session: Omit<AdminLiveSessionRecord, "id
   const id = `live-${Date.now()}`;
   const created: AdminLiveSessionRecord = { id, ...session };
   liveSessionStore.set(id, created);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_live_session_created",
+    payload: { live_session_id: id, title: session.title },
+  });
   return created;
 }
 
@@ -150,11 +214,26 @@ export function updateAdminLiveSession(
   if (!existing) return null;
   const updated = { ...existing, ...updates, id: existing.id };
   liveSessionStore.set(id, updated);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_live_session_updated",
+    payload: { live_session_id: id, updated_fields: Object.keys(updates) },
+  });
   return updated;
 }
 
 export function deleteAdminLiveSession(id: string) {
-  return liveSessionStore.delete(id);
+  const deleted = liveSessionStore.delete(id);
+  if (deleted) {
+    createAuditEvent({
+      case_ref: null,
+      actor_role: "admin",
+      action: "admin_live_session_deleted",
+      payload: { live_session_id: id },
+    });
+  }
+  return deleted;
 }
 
 export function listAdminReferrals() {
@@ -169,6 +248,12 @@ export function updateAdminReferral(
   if (!existing) return null;
   const updated = { ...existing, ...updates, id: existing.id };
   referralStore.set(id, updated);
+  createAuditEvent({
+    case_ref: existing.case_ref,
+    actor_role: "admin",
+    action: "admin_referral_updated",
+    payload: { referral_id: id, status: updated.status, notes: updated.notes },
+  });
   return updated;
 }
 
@@ -186,6 +271,12 @@ export function createAdminContactMessage(
     created_at: new Date().toISOString(),
   };
   contactQueueStore.set(id, created);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_contact_message_created",
+    payload: { message_id: id, status: created.status, priority: created.priority },
+  });
   return created;
 }
 
@@ -197,9 +288,30 @@ export function updateAdminContactMessage(
   if (!existing) return null;
   const updated = { ...existing, ...updates, id: existing.id };
   contactQueueStore.set(id, updated);
+  createAuditEvent({
+    case_ref: null,
+    actor_role: "admin",
+    action: "admin_contact_message_updated",
+    payload: { message_id: id, updated_fields: Object.keys(updates) },
+  });
   return updated;
 }
 
 export function deleteAdminContactMessage(id: string) {
-  return contactQueueStore.delete(id);
+  const deleted = contactQueueStore.delete(id);
+  if (deleted) {
+    createAuditEvent({
+      case_ref: null,
+      actor_role: "admin",
+      action: "admin_contact_message_deleted",
+      payload: { message_id: id },
+    });
+  }
+  return deleted;
+}
+
+export function listAdminAuditEvents() {
+  return Array.from(auditEventStore.values()).sort((a, b) =>
+    a.created_at < b.created_at ? 1 : -1,
+  );
 }

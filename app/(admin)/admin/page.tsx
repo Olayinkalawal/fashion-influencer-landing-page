@@ -33,6 +33,9 @@ export default async function AdminHomePage() {
         <Button asChild variant="outline" size="sm">
           <Link href="/admin/contact-queue">Contact queue</Link>
         </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/audit">Audit events</Link>
+        </Button>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
