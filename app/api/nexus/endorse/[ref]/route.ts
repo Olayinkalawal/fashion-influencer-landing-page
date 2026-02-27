@@ -7,7 +7,7 @@ export async function POST(
 ) {
   try {
     const payload = (await request.json()) as Record<string, unknown>;
-    const response = endorseQuote(params.ref, payload);
+    const response = await endorseQuote(params.ref, payload);
     return NextResponse.json(response);
   } catch (error) {
     return NextResponse.json(

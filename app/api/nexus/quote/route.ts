@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
     const validated = validateQuoteApplication(payload);
-    const quote = createQuote(validated);
+    const quote = await createQuote(validated);
     return NextResponse.json(quote, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {

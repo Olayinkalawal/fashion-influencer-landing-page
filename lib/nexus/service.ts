@@ -53,7 +53,9 @@ function buildDocumentUrl(caseRef: string, documentType: PolicyDocument["documen
   return `https://nexus-core.internal/documents/${caseRef}/${slug}.pdf`;
 }
 
-export function createQuote(payload: QuoteApplicationPayload): QuoteResponse {
+export async function createQuote(
+  payload: QuoteApplicationPayload,
+): Promise<QuoteResponse> {
   const premium = calculatePremium(payload);
   const referralReasons = evaluateReferralReasons(payload);
   const referralRequired = referralReasons.length > 0;
@@ -77,7 +79,7 @@ export function createQuote(payload: QuoteApplicationPayload): QuoteResponse {
     response,
   });
 
-  void persistQuoteCreated({ payload, response });
+  await persistQuoteCreated({ payload, response });
 
   return response;
 }
@@ -184,14 +186,17 @@ export async function getDocumentsWithFallback(reference: string) {
   return fetchDocumentsByReference(reference);
 }
 
-export function renewQuote(reference: string, payload: QuoteApplicationPayload): RenewResponse {
-  const existing = getQuoteByRef(reference);
+export async function renewQuote(
+  reference: string,
+  payload: QuoteApplicationPayload,
+): Promise<RenewResponse> {
+  const existing = await getStoredQuoteWithFallback(reference);
 
   if (!existing) {
     throw new Error("Quote not found");
   }
 
-  const quote = createQuote(payload);
+  const quote = await createQuote(payload);
   const renewalRef = normalizeRef(`R${Date.now()}${Math.floor(Math.random() * 900 + 100)}`);
 
   updateStoredQuote(reference, (stored) => ({
@@ -219,11 +224,11 @@ export function renewQuote(reference: string, payload: QuoteApplicationPayload):
   return response;
 }
 
-export function endorseQuote(
+export async function endorseQuote(
   reference: string,
   payload: Record<string, unknown>,
-): EndorseResponse {
-  const existing = getQuoteByRef(reference);
+): Promise<EndorseResponse> {
+  const existing = await getStoredQuoteWithFallback(reference);
 
   if (!existing) {
     throw new Error("Quote not found");

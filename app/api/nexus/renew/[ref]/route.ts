@@ -10,7 +10,7 @@ export async function POST(
   try {
     const payload = await request.json();
     const validated = validateQuoteApplication(payload);
-    const response = renewQuote(params.ref, validated);
+    const response = await renewQuote(params.ref, validated);
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof ZodError) {

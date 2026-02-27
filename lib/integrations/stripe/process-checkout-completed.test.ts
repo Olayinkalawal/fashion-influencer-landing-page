@@ -5,7 +5,7 @@ import { processCheckoutCompleted } from "@/lib/integrations/stripe/process-chec
 
 describe("processCheckoutCompleted", () => {
   it("binds quote on first checkout completion event", async () => {
-    const created = createQuote(buildQuotePayload());
+    const created = await createQuote(buildQuotePayload());
     const result = await processCheckoutCompleted({
       eventId: `evt_${Date.now()}_1`,
       quoteRef: created.quote_ref,
@@ -16,7 +16,7 @@ describe("processCheckoutCompleted", () => {
   });
 
   it("returns idempotent true when event already processed", async () => {
-    const created = createQuote(buildQuotePayload());
+    const created = await createQuote(buildQuotePayload());
     const eventId = `evt_${Date.now()}_2`;
     await processCheckoutCompleted({ eventId, quoteRef: created.quote_ref });
 
