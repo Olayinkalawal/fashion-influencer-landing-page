@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { getStripeServerClient } from "@/lib/integrations/stripe/client";
 import { processCheckoutCompleted } from "@/lib/integrations/stripe/process-checkout-completed";
+import { log } from "@/lib/logger";
 
 interface MockWebhookBody {
   event_id: string;
@@ -29,6 +30,11 @@ export async function POST(request: Request) {
       eventId: mock.event_id,
       quoteRef: mock.quote_ref,
     });
+    log("info", "Processed mock checkout completion webhook", {
+      eventId: mock.event_id,
+      quoteRef: mock.quote_ref,
+      idempotent: processed.idempotent,
+    });
 
     return NextResponse.json({
       mode: "mock",
@@ -45,6 +51,9 @@ export async function POST(request: Request) {
       process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (error) {
+    log("warn", "Rejected Stripe webhook due to signature failure", {
+      error: String(error),
+    });
     return NextResponse.json(
       { message: "Invalid Stripe signature", error: String(error) },
       { status: 400 },
@@ -58,6 +67,11 @@ export async function POST(request: Request) {
       eventId: event.id,
       quoteRef: quoteRef ?? "",
     });
+    log("info", "Processed Stripe checkout completion webhook", {
+      eventId: event.id,
+      quoteRef: quoteRef ?? "",
+      idempotent: result.idempotent,
+    });
 
     return NextResponse.json({
       mode: "stripe",
@@ -66,6 +80,10 @@ export async function POST(request: Request) {
     });
   }
 
+  log("info", "Ignored unsupported Stripe webhook event", {
+    eventType: event.type,
+    eventId: event.id,
+  });
   return NextResponse.json({
     mode: "stripe",
     handled: false,
