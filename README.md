@@ -135,11 +135,14 @@ Admin surface includes:
 - `/admin/live-sessions`
 - `/admin/contact-queue`
 - `/admin/referrals`
+- `/admin/audit`
 - `/api/admin/members` (admin-protected member listing API)
 - `/api/admin/courses` + `/api/admin/courses/[id]` (admin course CRUD)
 - `/api/admin/live-sessions` + `/api/admin/live-sessions/[id]` (admin live session CRUD)
 - `/api/admin/referrals` + `/api/admin/referrals/[id]` (referral queue status)
 - `/api/admin/contact-queue` + `/api/admin/contact-queue/[id]` (contact queue CRUD)
+- `/api/admin/kpis` (dashboard KPI metrics)
+- `/api/admin/audit-events` (operational audit feed)
 
 Learning APIs:
 
