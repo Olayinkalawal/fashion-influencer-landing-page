@@ -49,6 +49,9 @@ Configure these in Netlify Site Settings → Environment variables:
 8. Optional smoke validation script:
    - `STAGING_URL=https://<your-staging-domain> npm run verify:staging`
    - add `CRON_SECRET=...` to include cron endpoint check.
+9. Optional dedicated integration checks:
+   - `STAGING_URL=... STRIPE_WEBHOOK_SECRET=... npm run verify:stripe:webhook`
+   - `STAGING_URL=... CRON_SECRET=... npm run verify:renewal:cron`
    - `POST /api/nexus/quote`
    - `GET /api/nexus/quote/:ref`
    - `POST /api/stripe/checkout`

@@ -58,6 +58,8 @@ npm run build
 npm run predeploy:netlify:staging
 npm run deploy:netlify:staging
 STAGING_URL=https://your-staging-domain npm run verify:staging
+STAGING_URL=https://your-staging-domain STRIPE_WEBHOOK_SECRET=whsec_xxx npm run verify:stripe:webhook
+STAGING_URL=https://your-staging-domain CRON_SECRET=xxx npm run verify:renewal:cron
 ```
 
 ## Current scope

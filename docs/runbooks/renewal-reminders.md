@@ -40,3 +40,10 @@ curl -X POST "https://<staging-domain>/api/cron/renewal-reminders" \
   "mode": "resend"
 }
 ```
+
+## Staging verification script
+```bash
+STAGING_URL=https://<staging-domain> \
+CRON_SECRET=<your-cron-secret> \
+npm run verify:renewal:cron
+```

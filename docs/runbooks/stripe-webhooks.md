@@ -37,3 +37,14 @@ When Stripe keys are not configured:
 - Endpoint accepts mock JSON body:
   - `{ "event_id": "evt_local_1", "quote_ref": "<quoteRef>" }`
 - This triggers the same bind pipeline for staging simulation.
+
+## Staging verification script
+With deployed staging URL and webhook secret:
+
+```bash
+STAGING_URL=https://<staging-domain> \
+STRIPE_WEBHOOK_SECRET=<whsec_...> \
+npm run verify:stripe:webhook
+```
+
+This script creates a quote, generates a signed test webhook header, posts the event to staging, and prints response details.
