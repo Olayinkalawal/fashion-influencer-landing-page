@@ -1,66 +1,42 @@
-# Fashion Influencer Landing Page
+# EYA Platform
 
-A modern, responsive landing page for fashion influencer Jariatu Danita, built with Next.js 14, TypeScript, and Tailwind CSS.
+EYA Platform is a Next.js application that combines:
 
-## Features
+- A branded quote and purchase journey
+- A member portal for policy management
+- A CPD learning experience
+- Internal broker/admin tooling
 
-- Responsive design for all devices
-- Modern UI with smooth animations
-- Interactive navigation
-- Gallery showcase
-- Shop integration with affiliate links
-- Contact section
-- Performance optimized
+The project is being built with an internal "Nexus Core" API layer (SchemeServe-style) that handles rating, referrals, cases, policy lifecycle, and document metadata.
 
-## Tech Stack
+## Stack
 
-- Next.js 14
+- Next.js 14 (App Router)
 - TypeScript
 - Tailwind CSS
-- Framer Motion
-- Lucide Icons
-- Shadcn/ui Components
+- Supabase (planned integration)
+- NextAuth (planned integration)
+- Stripe (planned integration)
 
-## Getting Started
+## Local development
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/fashion-influencer-landing-page.git
-```
-
-2. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
-```
-
-3. Run the development server:
-```bash
 npm run dev
-# or
-yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Quality commands
 
-## Project Structure
-
-```
-├── app/                    # Next.js app directory
-│   ├── components/        # React components
-│   │   ├── ui/           # Reusable UI components
-│   │   └── ...          # Page sections
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── public/               # Static files
-└── styles/              # Global styles
+```bash
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-## Deployment
+## Current scope
 
-The project is configured for easy deployment on Vercel. Just connect your GitHub repository to Vercel and it will automatically deploy your changes.
+Phase 1 establishes project foundation:
 
-## License
-
-MIT License
+- Route groups for marketing, quote, portal, learning, and admin areas
+- Shared layout and UI primitives
+- Environment configuration/validation scaffolding

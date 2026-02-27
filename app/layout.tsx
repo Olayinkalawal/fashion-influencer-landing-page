@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import "@/lib/config/env";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -13,8 +14,9 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jariatu Danita - Fashion Influencer",
-  description: "Fashion influencer and style curator Jariatu Danita's personal website.",
+  title: "EYA Platform",
+  description:
+    "EYA insurance, membership, and CPD platform powered by an internal Nexus Core.",
 };
 
 export default function RootLayout({
@@ -24,9 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${robotoMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
         {children}
       </body>
     </html>
