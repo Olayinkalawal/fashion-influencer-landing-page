@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { fetchWithRetry } from "./utils/http.mjs";
+
 const stagingUrl = process.env.STAGING_URL;
 
 if (!stagingUrl) {
@@ -12,7 +14,9 @@ const normalizedUrl = stagingUrl.endsWith("/")
   : stagingUrl;
 
 async function check(endpoint, options = {}) {
-  const response = await fetch(`${normalizedUrl}${endpoint}`, options);
+  const method = options.method ?? "GET";
+  const attempts = method === "GET" ? 3 : 1;
+  const response = await fetchWithRetry(`${normalizedUrl}${endpoint}`, options, { attempts });
   const text = await response.text();
   return {
     endpoint,

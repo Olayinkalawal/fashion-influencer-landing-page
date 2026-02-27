@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { fetchWithRetry } from "./utils/http.mjs";
+
 const stagingUrl = process.env.STAGING_URL;
 const cronSecret = process.env.CRON_SECRET;
 
@@ -18,12 +20,12 @@ const normalizedUrl = stagingUrl.endsWith("/")
   : stagingUrl;
 
 async function verifyRenewalCron() {
-  const response = await fetch(`${normalizedUrl}/api/cron/renewal-reminders`, {
+  const response = await fetchWithRetry(`${normalizedUrl}/api/cron/renewal-reminders`, {
     method: "POST",
     headers: {
       "x-cron-secret": cronSecret,
     },
-  });
+  }, { attempts: 1 });
 
   const body = await response.text();
   console.log("Renewal cron verification status:", response.status);

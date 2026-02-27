@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import Stripe from "stripe";
+import { fetchWithRetry } from "./utils/http.mjs";
 
 const stagingUrl = process.env.STAGING_URL;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -20,7 +21,7 @@ const normalizedUrl = stagingUrl.endsWith("/")
   : stagingUrl;
 
 async function createQuote() {
-  const response = await fetch(`${normalizedUrl}/api/nexus/quote`, {
+  const response = await fetchWithRetry(`${normalizedUrl}/api/nexus/quote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -112,7 +113,7 @@ async function createQuote() {
       },
       payment_method: "Credit Card",
     }),
-  });
+  }, { attempts: 1 });
 
   if (!response.ok) {
     const body = await response.text();
@@ -146,14 +147,14 @@ async function verifyWebhook() {
     secret: webhookSecret,
   });
 
-  const response = await fetch(`${normalizedUrl}/api/stripe/webhook`, {
+  const response = await fetchWithRetry(`${normalizedUrl}/api/stripe/webhook`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "stripe-signature": signature,
     },
     body: payloadString,
-  });
+  }, { attempts: 3 });
 
   const bodyText = await response.text();
   console.log("Webhook verification response status:", response.status);
