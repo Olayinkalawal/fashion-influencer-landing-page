@@ -1,9 +1,10 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { requireSession } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProfileDetailsForm } from "@/components/portal/profile-details-form";
 
 export default async function PortalProfilePage() {
-  const session = await requireSession();
+  await requireSession();
 
   return (
     <PageShell>
@@ -13,18 +14,10 @@ export default async function PortalProfilePage() {
       </p>
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle>Account snapshot</CardTitle>
+          <CardTitle>Account profile</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p>
-            <strong>Email:</strong> {session.user.email}
-          </p>
-          <p>
-            <strong>Role:</strong> {session.user.role}
-          </p>
-          <p className="text-muted-foreground">
-            Editable profile form and account preferences will be added in a subsequent phase.
-          </p>
+        <CardContent>
+          <ProfileDetailsForm />
         </CardContent>
       </Card>
     </PageShell>

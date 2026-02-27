@@ -1,6 +1,7 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { requireSession } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClaimsNotificationForm } from "@/components/portal/claims-notification-form";
 
 export default async function PortalClaimsPage() {
   await requireSession();
@@ -18,8 +19,16 @@ export default async function PortalClaimsPage() {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>1. Gather incident details, date, and supporting evidence.</p>
           <p>2. Notify EYA support team immediately for urgent safeguarding incidents.</p>
-          <p>3. Submit full claim details in the dedicated form (coming in next phase).</p>
+          <p>3. Submit your first-notification details below.</p>
           <p>4. Track claim progress through case updates.</p>
+        </CardContent>
+      </Card>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>First notification of loss</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClaimsNotificationForm />
         </CardContent>
       </Card>
     </PageShell>
