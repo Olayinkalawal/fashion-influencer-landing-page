@@ -17,6 +17,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   RESEND_FROM_EMAIL: z.string().email().optional(),
   CRON_SECRET: z.string().min(1).optional(),
+  CALCOM_BOOKING_URL: z.string().url().optional(),
 });
 
 const parsedEnv = envSchema.safeParse({
@@ -36,6 +37,7 @@ const parsedEnv = envSchema.safeParse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
   CRON_SECRET: process.env.CRON_SECRET,
+  CALCOM_BOOKING_URL: process.env.CALCOM_BOOKING_URL,
 });
 
 if (!parsedEnv.success) {

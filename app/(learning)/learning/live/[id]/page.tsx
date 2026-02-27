@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLiveSessionById, mockLiveSessions } from "@/lib/learning/mock-data";
+import { env } from "@/lib/config/env";
 
 export function generateStaticParams() {
   return mockLiveSessions.map((session) => ({ id: session.id }));
@@ -10,6 +11,7 @@ export function generateStaticParams() {
 export default function LiveSessionDetailPage({ params }: { params: { id: string } }) {
   const session = getLiveSessionById(params.id);
   if (!session) return notFound();
+  const bookingUrl = env.CALCOM_BOOKING_URL ?? "https://cal.com";
 
   return (
     <PageShell>
@@ -24,8 +26,8 @@ export default function LiveSessionDetailPage({ params }: { params: { id: string
           <p>Host: {session.host}</p>
           <p>Starts: {new Date(session.scheduled_at).toLocaleString()}</p>
           <p>Duration: {session.duration_minutes} minutes</p>
-          <a href="#" className="text-primary underline underline-offset-2">
-            Book via Cal.com (integration placeholder)
+          <a href={bookingUrl} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-2">
+            Book via Cal.com
           </a>
         </CardContent>
       </Card>
