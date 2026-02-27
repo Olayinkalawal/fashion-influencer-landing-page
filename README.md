@@ -27,6 +27,16 @@ npm run dev
 
 Create a `.env.local` file from `.env.example` before testing authentication and integrations.
 
+## Deployment
+
+- Netlify config is provided via `netlify.toml` with the Next.js runtime plugin.
+- Add required environment variables in Netlify site settings before deploying.
+
+## CI
+
+- GitHub Actions workflow at `.github/workflows/ci.yml`
+- Runs: lint, test, typecheck, and build on push/PR
+
 ### Quality commands
 
 ```bash
