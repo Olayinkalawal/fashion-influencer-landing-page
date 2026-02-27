@@ -1,6 +1,8 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth/session";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function AdminHomePage() {
   const session = await requireRole("admin");
@@ -14,6 +16,20 @@ export default async function AdminHomePage() {
       <p className="mt-1 text-sm text-muted-foreground">
         Signed in as {session.user.email} ({session.user.role}).
       </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/members">Members</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/courses">Courses</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/live-sessions">Live sessions</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/contact-queue">Contact queue</Link>
+        </Button>
+      </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[

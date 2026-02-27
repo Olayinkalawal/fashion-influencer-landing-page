@@ -79,3 +79,21 @@ Portal surface now includes:
 - `/portal/renewal`
 - `/portal/claims`
 - `/portal/profile`
+
+Learning surface includes:
+
+- `/learning`
+- `/learning/[slug]`
+- `/learning/[slug]/lesson/[id]`
+- `/learning/my-courses`
+- `/learning/certificates`
+- `/learning/live`
+- `/learning/live/[id]`
+
+Admin surface includes:
+
+- `/admin`
+- `/admin/members`
+- `/admin/courses`
+- `/admin/live-sessions`
+- `/admin/contact-queue`
