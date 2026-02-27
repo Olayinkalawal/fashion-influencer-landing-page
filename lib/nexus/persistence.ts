@@ -105,6 +105,23 @@ export async function persistQuoteCreated({ payload, response }: PersistQuoteInp
 
   const caseId = (caseRow as any).id as string;
 
+  if (memberId) {
+    const { error: memberLinkError } = await supabase
+      .from("members")
+      .update({
+        nexus_case_ref: response.case_ref,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", memberId);
+    if (memberLinkError) {
+      log("warn", "Unable to update member nexus case reference", {
+        memberId,
+        caseRef: response.case_ref,
+        error: memberLinkError.message,
+      });
+    }
+  }
+
   const { data: quoteRow, error: quoteError } = await supabase
     .from("quotes")
     .upsert(
