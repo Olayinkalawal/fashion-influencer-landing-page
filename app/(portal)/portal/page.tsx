@@ -32,6 +32,9 @@ export default async function PortalHomePage() {
         <Button asChild variant="outline" size="sm">
           <Link href="/portal/profile">Profile</Link>
         </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/portal/cpd">CPD records</Link>
+        </Button>
       </div>
       <div className="mt-8">
         <PolicyStatusWidget />

@@ -118,6 +118,7 @@ Portal surface now includes:
 - `/portal/renewal`
 - `/portal/claims`
 - `/portal/profile`
+- `/portal/cpd`
 - `/api/portal/latest-quote` (server-side fallback for member quote lookup)
 - Renewal reminder scaffolding:
   - `lib/services/renewal-reminders.ts`
