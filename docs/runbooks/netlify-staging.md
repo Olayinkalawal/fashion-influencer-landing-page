@@ -35,15 +35,20 @@ Configure these in Netlify Site Settings → Environment variables:
 2. Set CLI environment variables for authenticated deploys:
    - `NETLIFY_AUTH_TOKEN`
    - `NETLIFY_SITE_ID`
-3. Run:
+3. Run predeploy checks:
+   - `npm run predeploy:netlify:staging`
+4. Run:
    - `npm run deploy:netlify:staging`
-4. Confirm Netlify build succeeds.
-5. Verify key routes:
+5. Confirm Netlify build succeeds.
+6. Verify key routes:
    - `/quote`, `/quote/review`, `/quote/payment`
    - `/portal`, `/portal/documents`, `/portal/renewal`
    - `/learning`, `/learning/my-courses`, `/learning/certificates`
    - `/admin`, `/admin/members`, `/admin/courses`
-6. Verify API health:
+7. Verify API health:
+8. Optional smoke validation script:
+   - `STAGING_URL=https://<your-staging-domain> npm run verify:staging`
+   - add `CRON_SECRET=...` to include cron endpoint check.
    - `POST /api/nexus/quote`
    - `GET /api/nexus/quote/:ref`
    - `POST /api/stripe/checkout`

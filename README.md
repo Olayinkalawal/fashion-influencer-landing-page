@@ -47,8 +47,17 @@ Create a `.env.local` file from `.env.example` before testing authentication and
 
 ```bash
 npm run lint
+npm run test
 npm run typecheck
 npm run build
+```
+
+### Deployment helpers
+
+```bash
+npm run predeploy:netlify:staging
+npm run deploy:netlify:staging
+STAGING_URL=https://your-staging-domain npm run verify:staging
 ```
 
 ## Current scope

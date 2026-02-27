@@ -9,7 +9,9 @@
     "lint": "eslint app components lib types auth.ts middleware.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "deploy:netlify:staging": "netlify deploy --build --context=deploy-preview"
+    "predeploy:netlify:staging": "node scripts/predeploy-netlify.mjs",
+    "deploy:netlify:staging": "netlify deploy --build --context=deploy-preview",
+    "verify:staging": "node scripts/verify-staging.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
